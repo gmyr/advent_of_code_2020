@@ -16,6 +16,7 @@ fn main() {
 
     println!("part 1: {}", part1(arrival_time, &bus_tuples));
     println!("part 2: {}", part2(&bus_tuples, false));
+    println!("part 2 simpler: {}", part2_simpler(&bus_tuples));
 }
 
 fn part1(arrival_time: u64, bus_tuples: &Vec<(u64, u64)>) -> u64 {
@@ -34,6 +35,19 @@ fn part1(arrival_time: u64, bus_tuples: &Vec<(u64, u64)>) -> u64 {
         }
     }
     best_bus_id * (best_departure_time - arrival_time)
+}
+
+// inspired (but corrected) from https://todd.ginsberg.com/post/advent-of-code/2020/day13/
+fn part2_simpler(bus_tuples: &Vec<(u64, u64)>) -> u64 {
+    let mut time = 0;
+    let mut step_size = bus_tuples[0].1;
+    for i in 1..bus_tuples.len() {
+        while (time + bus_tuples[i].0) % bus_tuples[i].1 != 0 {
+            time += step_size
+        }
+        step_size = lcm(step_size, bus_tuples[i].1);
+    }
+    time
 }
 
 fn part2(bus_tuples: &Vec<(u64, u64)>, debug: bool) -> u64 {
