@@ -19,15 +19,26 @@ fn main() {
     }
     line_iter.next(); // skip empty line
 
-    // generate all possible messages
-    let valid_msgs = generate_msgs(0, &rules);
+    // generate all possible messages for part 1
+    let valid_msgs_part1 = generate_msgs(0, &rules);
 
-    // count valid messages
-    let result = line_iter
-        .map(|line| valid_msgs.contains(line))
+    // count valid messages for part 1
+    let msgs: Vec<String> = line_iter.map(|s| s.to_string()).collect();
+    let result_part1 = msgs
+        .iter()
+        .map(|msg| valid_msgs_part1.contains(msg))
         .filter(|b| *b)
         .count();
-    println!("{}", result);
+    println!("part 1: {}", result_part1);
+
+    let from42 = generate_msgs(42, &rules);
+    let from31 = generate_msgs(31, &rules);
+    let result_part2 = msgs
+        .iter()
+        .map(|msg| check_part2(msg, &from42, &from31))
+        .filter(|b| *b)
+        .count();
+    println!("part 2: {}", result_part2);
 }
 
 #[derive(Debug)]
@@ -112,6 +123,47 @@ fn generate_from_non_terminals(
     hs
 }
 
-// fn check_msgs(start_id: u64, rules: &HashMap<u64, Vec<Vec<Symbol>>>, msgs: &HashSet<String>) -> u64 {
-//     0
-// }
+fn check_part2(msg: &str, from42: &HashSet<String>, from31: &HashSet<String>) -> bool {
+    let mut msg = msg.to_string();
+
+    // count matching tails
+    let mut num_tails = 0;
+    loop {
+        let mut done = true;
+        for pattern in from31 {
+            match msg.strip_suffix(pattern) {
+                Some(prefix) => {
+                    msg = prefix.to_string();
+                    num_tails += 1;
+                    done = false;
+                    break;
+                }
+                None => (),
+            }
+        }
+        if done {
+            break;
+        }
+    }
+
+    let mut num_heads = 0;
+    while msg.len() != 0 {
+        let mut found_match = false;
+        for pattern in from42 {
+            match msg.strip_prefix(pattern) {
+                Some(suffix) => {
+                    msg = suffix.to_string();
+                    num_heads += 1;
+                    found_match = true;
+                    break;
+                }
+                None => (),
+            }
+        }
+        if !found_match {
+            return false;
+        }
+    }
+
+    num_tails >= 1 && num_heads - num_tails >= 1
+}
